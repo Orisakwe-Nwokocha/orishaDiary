@@ -2,11 +2,13 @@ package africa.semicolon.orishaDiary.data.models;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Data
+@Document
 public class Entry {
     @Id
     private String id;

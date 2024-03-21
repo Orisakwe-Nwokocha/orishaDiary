@@ -5,6 +5,7 @@ import africa.semicolon.orishaDiary.data.models.Entry;
 import africa.semicolon.orishaDiary.data.repositories.DiaryRepository;
 import africa.semicolon.orishaDiary.dtos.requests.*;
 import africa.semicolon.orishaDiary.exceptions.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,8 +13,10 @@ import java.util.Optional;
 
 @Service
 public class DiaryServicesImpl implements DiaryServices {
+    @Autowired
     private DiaryRepository repository;
-    private EntryServices entryService;
+    @Autowired
+    private EntryServices entryServices;
 
     @Override
     public void register(RegisterRequest request) {
@@ -118,7 +121,7 @@ public class DiaryServicesImpl implements DiaryServices {
     }
 
     @Override
-    public void deleteEntry(int id, String username) {
+    public void deleteEntry(String id, String username) {
         Diary foundDiary = findDiaryBy(username.toLowerCase());
         checkLockStatusOf(foundDiary);
 
@@ -126,7 +129,7 @@ public class DiaryServicesImpl implements DiaryServices {
     }
 
     @Override
-    public Entry getEntry(int id, String username) {
+    public Entry getEntry(String id, String username) {
         Diary foundDiary = findDiaryBy(username.toLowerCase());
         checkLockStatusOf(foundDiary);
 

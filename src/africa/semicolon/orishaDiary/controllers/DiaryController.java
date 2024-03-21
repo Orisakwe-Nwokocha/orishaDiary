@@ -3,14 +3,15 @@ package africa.semicolon.orishaDiary.controllers;
 import africa.semicolon.orishaDiary.dtos.requests.*;
 import africa.semicolon.orishaDiary.exceptions.DiaryAppException;
 import africa.semicolon.orishaDiary.services.DiaryServices;
-import africa.semicolon.orishaDiary.services.DiaryServicesImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 public class DiaryController {
-    private final DiaryServices diaryServices = new DiaryServicesImpl();
+    @Autowired
+    private DiaryServices diaryServices;
 
     @PostMapping("/register")
     public String registerUser(@RequestBody RegisterRequest request) {
@@ -67,7 +68,8 @@ public class DiaryController {
         }
     }
 
-    public String updateEntry(UpdateEntryRequest request) {
+    @PatchMapping("updateEntry")
+    public String updateEntry(@RequestBody UpdateEntryRequest request) {
         try {
             diaryServices.updateEntryWith(request);
             return "updated successfully";
@@ -77,7 +79,8 @@ public class DiaryController {
         }
     }
 
-    public String deleteEntryBy(int id, String username) {
+    @DeleteMapping("deleteEntry/{id}")
+    public String deleteEntryBy(@PathVariable("id") String id, String username) {
         try {
             diaryServices.deleteEntry(id, username);
             return "deleted successfully";
@@ -87,7 +90,8 @@ public class DiaryController {
         }
     }
 
-    public String getEntryBy(int id, String username) {
+    @GetMapping("getEntry/{id}/{name}")
+    public String getEntryBy(@PathVariable("id") String id, @PathVariable("name") String username) {
         try {
             return String.valueOf(diaryServices.getEntry(id, username));
         }
@@ -96,8 +100,8 @@ public class DiaryController {
         }
     }
 
-    @GetMapping("/diary/{username}")
-    public List<?> getEntriesFor(@PathVariable String username) {
+    @GetMapping("/getFor/{name}")
+    public List<?> getEntriesFor(@PathVariable("name") String username) {
         try {
             return diaryServices.getEntriesFor(username);
         }
