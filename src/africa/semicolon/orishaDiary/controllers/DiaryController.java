@@ -2,15 +2,14 @@ package africa.semicolon.orishaDiary.controllers;
 
 import africa.semicolon.orishaDiary.dtos.requests.*;
 import africa.semicolon.orishaDiary.exceptions.DiaryAppException;
-import africa.semicolon.orishaDiary.exceptions.InvalidArgumentException;
 import africa.semicolon.orishaDiary.services.DiaryServices;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
-import javax.validation.Valid;
-
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 public class DiaryController {
@@ -29,10 +28,11 @@ public class DiaryController {
     }
 
     @PatchMapping("/login")
-    public String login(@Valid @RequestBody LoginRequest request) {
-        try {
-            validateUsername(request.getUsername());
+    @Valid
+    public String login(@Valid @RequestBody LoginRequest request, Errors errors) {
+        if (errors.hasErrors()) return String.format("Login failed: %s is null", Objects.requireNonNull(errors.getFieldError()).getField());
 
+        try {
             diaryServices.login(request);
             return "login successful";
         }
@@ -53,10 +53,10 @@ public class DiaryController {
     }
 
     @PatchMapping("/updatePassword")
-    public String updatePassword(@Validated @RequestBody UpdatePasswordRequest request) {
-        try {
-            validateUsername(request.getUsername());
+    public String updatePassword(@Valid @RequestBody UpdatePasswordRequest request, Errors errors) {
+        if (errors.hasErrors()) return String.format("Update failed: %s is null", Objects.requireNonNull(errors.getFieldError()).getField());
 
+        try {
             diaryServices.updatePassword(request);
             return "password update successful";
         }
@@ -66,10 +66,10 @@ public class DiaryController {
     }
 
     @DeleteMapping("/deregister")
-    public String deregisterUserWith(@Valid @RequestBody DeregisterRequest request) {
-        try {
-            validateUsername(request.getUsername());
+    public String deregisterUserWith(@Valid @RequestBody DeregisterRequest request, Errors errors) {
+        if (errors.hasErrors()) return String.format("De-registration failed: %s is null", Objects.requireNonNull(errors.getFieldError()).getField());
 
+        try {
             diaryServices.deregister(request);
             return "removed successfully";
         }
@@ -79,10 +79,10 @@ public class DiaryController {
     }
 
     @PostMapping("createEntry")
-    public String createEntry(@Valid @RequestBody CreateEntryRequest createEntryRequest) {
-        try {
-            validateAuthor(createEntryRequest.getAuthor());
+    public String createEntry(@Valid @RequestBody CreateEntryRequest createEntryRequest, Errors errors) {
+        if (errors.hasErrors()) return String.format("Creation failed: %s is null", Objects.requireNonNull(errors.getFieldError()).getField());
 
+        try {
             diaryServices.createEntryWith(createEntryRequest);
             return "created successfully";
         }
@@ -92,11 +92,10 @@ public class DiaryController {
     }
 
     @PatchMapping("updateEntry")
-    public String updateEntry(@RequestBody @Valid UpdateEntryRequest updateEntryRequest) {
-        try {
-            validateAuthor(updateEntryRequest.getAuthor());
-            if (updateEntryRequest.getId() == null) throw new InvalidArgumentException("Entry id is null");
+    public String updateEntry(@Valid @RequestBody UpdateEntryRequest updateEntryRequest, Errors errors) {
+        if (errors.hasErrors()) return String.format("Update failed: %s is null", Objects.requireNonNull(errors.getFieldError()).getField());
 
+        try {
             diaryServices.updateEntryWith(updateEntryRequest);
             return "updated successfully";
         }
@@ -134,13 +133,5 @@ public class DiaryController {
         catch (DiaryAppException e) {
             return List.of(e.getMessage());
         }
-    }
-
-    private static void validateUsername(String username) {
-        if (username == null) throw new InvalidArgumentException("Username cannot be null");
-    }
-
-    private static void validateAuthor(String author) {
-        if (author == null) throw new InvalidArgumentException("Author cannot be null");
     }
 }

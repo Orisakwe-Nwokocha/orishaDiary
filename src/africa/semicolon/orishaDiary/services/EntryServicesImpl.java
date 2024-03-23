@@ -12,18 +12,21 @@ import java.util.Optional;
 
 @Service
 public class EntryServicesImpl implements EntryServices {
+    private long count;
     @Autowired
     private EntryRepository repository;
 
     @Override
     public void save(Entry entry) {
+        if (isNew(entry)) addIdTo(entry);
+        else update(entry);
+
         repository.save(entry);
     }
 
     @Override
     public void deleteEntry(String id) {
-        Optional<Entry> entry = repository.findById(id);
-        if (entry.isEmpty()) throw new EntryNotFoundException("Entry not found");
+        if (!repository.existsById(id)) throw new EntryNotFoundException("Entry not found");
 
         repository.deleteById(id);
     }
@@ -42,5 +45,22 @@ public class EntryServicesImpl implements EntryServices {
         if (entries.isEmpty()) throw new EmptyEntryListException("No entry found");
 
         return entries;
+    }
+
+    private void update(Entry entry) {
+        repository.findById(entry.getId()).ifPresent(oldEntry -> entry.setDateCreated(oldEntry.getDateCreated()));
+    }
+
+    private void addIdTo(Entry entry) {
+        entry.setId(generateId());
+    }
+
+    private String generateId() {
+        if (repository.existsById(String.valueOf(++count))) generateId();
+        return String.valueOf(count);
+    }
+
+    private boolean isNew(Entry entry) {
+        return entry.getId() == null;
     }
 }
