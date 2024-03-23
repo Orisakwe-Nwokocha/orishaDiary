@@ -20,9 +20,9 @@ public class Entry {
     @Override
     public String toString() {
         String asterisk = "*".repeat(50);
-        String dateCreated = this.dateCreated.format(DateTimeFormatter.ofPattern("dd/MMMM/yyyy HH:mm:ss a"));
-        String format = "%s%nGist %d%nDate Created: %s%nGossip Title: %s%nLatest Gist: %s%n%s%n";
+        String dateTimeCreated = dateCreated.format(DateTimeFormatter.ofPattern("dd/MMMM/yyyy 'at' HH:mm:ss a"));
+        String format = "%s%nGist %s%nDate Created: %s%nGossip Title: %s%nLatest Gist: %s%n%s%n";
 
-        return String.format(format, asterisk, id, dateCreated, title, body, asterisk);
+        return String.format(format, asterisk, id, dateTimeCreated, title, body, asterisk);
     }
 }

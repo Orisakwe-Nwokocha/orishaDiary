@@ -79,8 +79,8 @@ public class DiaryController {
         }
     }
 
-    @DeleteMapping("deleteEntry/{id}")
-    public String deleteEntryBy(@PathVariable("id") String id, String username) {
+    @DeleteMapping("deleteEntry/{entryId}")
+    public String deleteEntryBy(@PathVariable("entryId") String id, @RequestParam(name = "username", defaultValue = "") String username) {
         try {
             diaryServices.deleteEntry(id, username);
             return "deleted successfully";
@@ -90,18 +90,18 @@ public class DiaryController {
         }
     }
 
-    @GetMapping("getEntry/{id}/{name}")
-    public String getEntryBy(@PathVariable("id") String id, @PathVariable("name") String username) {
+    @GetMapping("getEntry/{entryId}")
+    public String getEntryBy(@PathVariable("entryId") String id, @RequestParam(name = "username", defaultValue = "") String username) {
         try {
-            return String.valueOf(diaryServices.getEntry(id, username));
+            return diaryServices.getEntry(id, username).toString();
         }
         catch (DiaryAppException e) {
             return e.getMessage();
         }
     }
 
-    @GetMapping("/getFor/{name}")
-    public List<?> getEntriesFor(@PathVariable("name") String username) {
+    @GetMapping("/getEntriesFor/{author}")
+    public List<?> getEntriesFor(@PathVariable("author") String username) {
         try {
             return diaryServices.getEntriesFor(username);
         }
