@@ -2,9 +2,13 @@ package africa.semicolon.orishaDiary.controllers;
 
 import africa.semicolon.orishaDiary.dtos.requests.*;
 import africa.semicolon.orishaDiary.exceptions.DiaryAppException;
+import africa.semicolon.orishaDiary.exceptions.InvalidArgumentException;
 import africa.semicolon.orishaDiary.services.DiaryServices;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import javax.validation.Valid;
+
 
 import java.util.List;
 
@@ -25,8 +29,10 @@ public class DiaryController {
     }
 
     @PatchMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
+    public String login(@Valid @RequestBody LoginRequest request) {
         try {
+            validateUsername(request.getUsername());
+
             diaryServices.login(request);
             return "login successful";
         }
@@ -46,9 +52,24 @@ public class DiaryController {
         }
     }
 
-    @PostMapping("/deregister")
-    public String deregisterUserWith(@RequestBody RemoveUserRequest request) {
+    @PatchMapping("/updatePassword")
+    public String updatePassword(@Validated @RequestBody UpdatePasswordRequest request) {
         try {
+            validateUsername(request.getUsername());
+
+            diaryServices.updatePassword(request);
+            return "password update successful";
+        }
+        catch (DiaryAppException e) {
+            return e.getMessage();
+        }
+    }
+
+    @DeleteMapping("/deregister")
+    public String deregisterUserWith(@Valid @RequestBody DeregisterRequest request) {
+        try {
+            validateUsername(request.getUsername());
+
             diaryServices.deregister(request);
             return "removed successfully";
         }
@@ -58,8 +79,10 @@ public class DiaryController {
     }
 
     @PostMapping("createEntry")
-    public String createEntry(@RequestBody CreateEntryRequest createEntryRequest) {
+    public String createEntry(@Valid @RequestBody CreateEntryRequest createEntryRequest) {
         try {
+            validateAuthor(createEntryRequest.getAuthor());
+
             diaryServices.createEntryWith(createEntryRequest);
             return "created successfully";
         }
@@ -69,9 +92,12 @@ public class DiaryController {
     }
 
     @PatchMapping("updateEntry")
-    public String updateEntry(@RequestBody UpdateEntryRequest request) {
+    public String updateEntry(@RequestBody @Valid UpdateEntryRequest updateEntryRequest) {
         try {
-            diaryServices.updateEntryWith(request);
+            validateAuthor(updateEntryRequest.getAuthor());
+            if (updateEntryRequest.getId() == null) throw new InvalidArgumentException("Entry id is null");
+
+            diaryServices.updateEntryWith(updateEntryRequest);
             return "updated successfully";
         }
         catch (DiaryAppException e) {
@@ -108,5 +134,13 @@ public class DiaryController {
         catch (DiaryAppException e) {
             return List.of(e.getMessage());
         }
+    }
+
+    private static void validateUsername(String username) {
+        if (username == null) throw new InvalidArgumentException("Username cannot be null");
+    }
+
+    private static void validateAuthor(String author) {
+        if (author == null) throw new InvalidArgumentException("Author cannot be null");
     }
 }

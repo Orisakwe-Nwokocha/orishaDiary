@@ -4,9 +4,11 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class LoginRequest {
+public class UpdatePasswordRequest {
     @NotNull
     private String username;
     @NotNull
-    private String password;
+    private String oldPassword;
+    @NotNull
+    private String newPassword;
 }

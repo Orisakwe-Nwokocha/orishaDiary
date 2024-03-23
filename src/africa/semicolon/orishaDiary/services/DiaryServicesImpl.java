@@ -35,36 +35,12 @@ public class DiaryServicesImpl implements DiaryServices {
         validateDuplicate(request);
     }
 
-    private void validateDuplicate(RegisterRequest request) {
-        boolean isDuplicate = repository.findById(request.getUsername().toLowerCase()).isPresent();
-        if (isDuplicate) throw new UsernameExistsException("Username already exists.");
-    }
-
-
-    private void validateBlank(RegisterRequest request) {
-        boolean isBlank = request.getUsername().isBlank() || request.getPassword().isBlank();
-        if (isBlank) throw new InvalidArgumentException("Username and password cannot be blank.");
-    }
-
-    private void validateNull(RegisterRequest request) {
-        boolean isNull = request.getUsername() == null || request.getPassword() == null;
-        if (isNull) throw new InvalidArgumentException("Username and password cannot be null.");
-    }
-
-    @Override
-    public Diary findDiaryBy(String username) {
-        Optional<Diary> foundDiary = repository.findById(username.toLowerCase());
-        if (foundDiary.isEmpty()) throw new UserNotFoundException("User not found.");
-
-        return foundDiary.get();
-    }
-
     @Override
     public void login(LoginRequest request) {
         Diary foundDiary = findDiaryBy(request.getUsername().toLowerCase());
-        if (isPasswordIncorrect(foundDiary, request.getPassword())) throw new IncorrectPasswordException("Password is incorrect.");
-        foundDiary.setLocked(false);
+        validatePasswordOf(foundDiary, request.getPassword());
 
+        foundDiary.setLocked(false);
         repository.save(foundDiary);
     }
 
@@ -76,21 +52,24 @@ public class DiaryServicesImpl implements DiaryServices {
         repository.save(foundDiary);
     }
 
-    private boolean isPasswordIncorrect(Diary foundDiary, String password) {
-        return !foundDiary.getPassword().equals(password);
+    @Override
+    public void updatePassword(UpdatePasswordRequest updatePasswordRequest) {
+        String username = updatePasswordRequest.getUsername().toLowerCase();
+        Diary foundDiary = findDiaryBy(username);
+        checkLockStatusOf(foundDiary);
+        validatePasswordOf(foundDiary, updatePasswordRequest.getOldPassword());
+
+        foundDiary.setPassword(updatePasswordRequest.getNewPassword());
+        repository.save(foundDiary);
     }
 
     @Override
-    public void deregister(RemoveUserRequest request) {
+    public void deregister(DeregisterRequest request) {
         Diary foundDiary = findDiaryBy(request.getUsername().toLowerCase());
         checkLockStatusOf(foundDiary);
-        if (isPasswordIncorrect(foundDiary, request.getPassword())) throw new IncorrectPasswordException("Password is incorrect.");
+        validatePasswordOf(foundDiary, request.getPassword());
 
         repository.delete(foundDiary);
-    }
-
-    private void checkLockStatusOf(Diary diary) {
-        if (diary.isLocked()) throw new IllegalDiaryStateException("You need to login to use this service.");
     }
 
     @Override
@@ -142,5 +121,37 @@ public class DiaryServicesImpl implements DiaryServices {
         checkLockStatusOf(foundDiary);
 
         return entryServices.getEntriesFor(username);
+    }
+
+    private void validateDuplicate(RegisterRequest request) {
+        String username = request.getUsername().toLowerCase();
+        boolean isDuplicate = repository.findById(username).isPresent();
+        if (isDuplicate) throw new UsernameExistsException("Username already exists.");
+    }
+
+    private void validateBlank(RegisterRequest request) {
+        boolean isBlank = request.getUsername().isBlank() || request.getPassword().isBlank();
+        if (isBlank) throw new InvalidArgumentException("Username and password cannot be blank.");
+    }
+
+    private void validateNull(RegisterRequest request) {
+        boolean isNull = request.getUsername() == null || request.getPassword() == null;
+        if (isNull) throw new InvalidArgumentException("Username and password cannot be null.");
+    }
+
+    private Diary findDiaryBy(String username) {
+        Optional<Diary> foundDiary = repository.findById(username.toLowerCase());
+        if (foundDiary.isEmpty()) throw new UserNotFoundException("User not found.");
+
+        return foundDiary.get();
+    }
+
+    private void checkLockStatusOf(Diary diary) {
+        if (diary.isLocked()) throw new IllegalDiaryStateException("You need to login to use this service.");
+    }
+
+    private void validatePasswordOf(Diary diary, String password) {
+        boolean isIncorrect = !diary.getPassword().equals(password);
+        if (isIncorrect) throw new IncorrectPasswordException("Password is incorrect.");
     }
 }
