@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface EntryRepository extends MongoRepository<Entry, String> {
     List<Entry> findByAuthor(String author);
 }
