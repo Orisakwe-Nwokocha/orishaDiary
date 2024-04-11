@@ -9,7 +9,8 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
+
+import static java.util.Objects.requireNonNull;
 
 @RestController
 public class DiaryController {
@@ -30,8 +31,7 @@ public class DiaryController {
     @PatchMapping("/login")
     @Valid
     public String login(@Valid @RequestBody LoginRequest request, Errors errors) {
-        if (errors.hasErrors()) return String.format("Login failed: %s is null", Objects.requireNonNull(errors.getFieldError()).getField());
-
+        if (errors.hasErrors()) return getValidationErrorMessage(errors);
         try {
             diaryServices.login(request);
             return "login successful";
@@ -54,8 +54,7 @@ public class DiaryController {
 
     @PatchMapping("/updatePassword")
     public String updatePassword(@Valid @RequestBody UpdatePasswordRequest request, Errors errors) {
-        if (errors.hasErrors()) return String.format("Update failed: %s is null", Objects.requireNonNull(errors.getFieldError()).getField());
-
+        if (errors.hasErrors()) return getValidationErrorMessage(errors);
         try {
             diaryServices.updatePassword(request);
             return "password update successful";
@@ -67,7 +66,7 @@ public class DiaryController {
 
     @DeleteMapping("/deregister")
     public String deregisterUserWith(@Valid @RequestBody DeregisterRequest request, Errors errors) {
-        if (errors.hasErrors()) return String.format("De-registration failed: %s is null", Objects.requireNonNull(errors.getFieldError()).getField());
+        if (errors.hasErrors()) return getValidationErrorMessage(errors);
 
         try {
             diaryServices.deregister(request);
@@ -80,7 +79,7 @@ public class DiaryController {
 
     @PostMapping("createEntry")
     public String createEntry(@Valid @RequestBody CreateEntryRequest createEntryRequest, Errors errors) {
-        if (errors.hasErrors()) return String.format("Creation failed: %s is null", Objects.requireNonNull(errors.getFieldError()).getField());
+        if (errors.hasErrors()) return getValidationErrorMessage(errors);
 
         try {
             diaryServices.createEntryWith(createEntryRequest);
@@ -93,7 +92,7 @@ public class DiaryController {
 
     @PatchMapping("updateEntry")
     public String updateEntry(@Valid @RequestBody UpdateEntryRequest updateEntryRequest, Errors errors) {
-        if (errors.hasErrors()) return String.format("Update failed: %s is null", Objects.requireNonNull(errors.getFieldError()).getField());
+        if (errors.hasErrors()) return getValidationErrorMessage(errors);
 
         try {
             diaryServices.updateEntryWith(updateEntryRequest);
@@ -133,5 +132,9 @@ public class DiaryController {
         catch (DiaryAppException e) {
             return List.of(e.getMessage());
         }
+    }
+
+    private static String getValidationErrorMessage(Errors errors) {
+        return String.format("Operation failed: %s is null", requireNonNull(errors.getFieldError()).getField());
     }
 }
